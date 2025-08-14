@@ -1,3 +1,5 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 # Security Test Scripts 
 
 This repo will serve as a home to some test scripts to test the security of systems. At its outset, it will focus on a RHEL 8.10 system, with potential to branch out into more systems as time goes on. These scripts will aim to test for FIPS-140-3 and DISA STIG compliance, as well as to test the overall security of the system.
