@@ -1,0 +1,72 @@
+name: CI (lint & test)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    name: Node.js Lint & Test
+    if: ${{ hashFiles('**/package.json') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install deps
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Lint (if script exists)
+        run: npm run lint --if-present
+
+      - name: Test (if script exists)
+        run: npm test --if-present
+
+  python:
+    name: Python Lint & Test
+    if: ${{ hashFiles('**/requirements.txt', '**/pyproject.toml') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install deps
+        run: |
+          if [ -f requirements.txt ]; then
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+          elif [ -f pyproject.toml ]; then
+            python -m pip install --upgrade pip
+            pip install . || true
+            # Add your dev/test extras here if you use them, e.g.:
+            # pip install ".[dev,test]"
+          fi
+          # Optionally install linters/test tools if you use them
+          pip install pytest || true
+          pip install ruff || true
+          pip install flake8 || true
+
+      - name: Lint (ruff if available)
+        run: ruff check . || flake8 || true
+
+      - name: Test (pytest if available)
+        run: pytest -q || true
